@@ -1,0 +1,12 @@
+# OS og editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Lokale hemmeligheter
+.env
+*.local
+
+# Avhengigheter (brukes ikke i dag)
+node_modules/

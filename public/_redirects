@@ -1,0 +1,4 @@
+# Netlify: same proxyar som nginx.conf gjer lokalt
+/adsb/*  https://api.adsb.lol/:splat  200
+/met/*   https://api.met.no/:splat    200
+/ad/*    https://allemannsdata.com/wiki/api/v1/kilder/:splat  200

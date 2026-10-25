@@ -1,0 +1,7 @@
+services:
+  sogndal-kart:
+    build: .
+    container_name: sogndal-kart
+    ports:
+      - "127.0.0.1:8090:80"
+    restart: unless-stopped

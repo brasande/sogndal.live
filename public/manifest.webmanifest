@@ -1,0 +1,16 @@
+{
+  "name": "Sogndal.live – kart over Sogn i sanntid",
+  "short_name": "Sogndal.live",
+  "description": "Bussar, ferjer, fly, vegstatus og vêr i Sogndal og indre Sogn – i sanntid på eit 3D-kart.",
+  "lang": "nn",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#121716",
+  "theme_color": "#1f5f6b",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

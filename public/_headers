@@ -1,0 +1,13 @@
+# Netlify: same sikkerheitsheaderar som nginx.conf
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://kamera.atlas.vegvesen.no; font-src 'self'; connect-src 'self' https://api.entur.io https://tiles.openfreemap.org https://tiles.mapterhorn.com https://*.goatcounter.com; worker-src 'self' blob:; child-src blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=()
+
+/vendor/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/sw.js
+  Cache-Control: no-cache

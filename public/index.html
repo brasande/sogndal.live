@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="nn" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sogndal.live – bussar, ferjer, fly og vegstatus i sanntid</title>
+    <meta name="description" content="Sjå bussar, ferjer og fly i Sogndal og indre Sogn i sanntid på eit 3D-kart, med avgangar, reiseplanleggar, vegstatus for fjelloverganger, vegkamera og vêr." />
+    <meta name="theme-color" content="#1f5f6b" />
+    <link rel="canonical" href="https://sogndal.live/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sogndal.live" />
+    <meta property="og:title" content="Sogndal.live – Sogn i sanntid" />
+    <meta property="og:description" content="Bussar, ferjer, fly, vegstatus og vêr i Sogndal og indre Sogn – live på eit 3D-kart." />
+    <meta property="og:url" content="https://sogndal.live/" />
+    <meta property="og:image" content="https://sogndal.live/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="3D-kart over Sogndal med bussar i sanntid" />
+    <meta property="og:locale" content="nn_NO" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href="/vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/vendor/maplibre/maplibre-gl.css" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#panel">Hopp til innhaldet</a>
+    <div id="map" role="region" aria-label="Kart over Sogndal og indre Sogn"></div>
+
+    <aside id="panel" class="panel" aria-label="Sogndal.live">
+      <button id="panel-handle" class="panel-handle" type="button" aria-label="Vis eller skjul panelet" aria-controls="panel" aria-expanded="true"><span></span></button>
+
+      <header class="panel-head">
+        <p class="eyebrow">Indre Sogn · i sanntid</p>
+        <h1>Sogndal<span class="dot">.live</span></h1>
+        <p class="lede">Bussar, ferjer, fly, vegstatus og vêr i Sogndal og fjordane rundt.</p>
+        <div id="weather" class="weather" hidden aria-live="polite"></div>
+      </header>
+
+      <section class="block" aria-labelledby="h-ferry">
+        <div class="block-head"><h2 id="h-ferry">Ferjer no</h2></div>
+        <ul id="ferry-list" class="ferry-list"><li class="empty">Hentar ferjeavgangar …</li></ul>
+      </section>
+
+      <section class="block" aria-labelledby="h-live">
+        <div class="block-head">
+          <h2 id="h-live">I trafikk no</h2>
+          <span id="live-status" class="status" data-state="loading" role="status"><i aria-hidden="true"></i><span>Hentar posisjonar …</span></span>
+        </div>
+        <fieldset class="toggles">
+          <legend class="sr-only">Vis på kartet</legend>
+          <label class="chip"><input type="checkbox" id="t-bus" checked /><span>Buss</span><b id="c-bus">0</b></label>
+          <label class="chip"><input type="checkbox" id="t-ferry" checked /><span>Ferje</span><b id="c-ferry">0</b></label>
+          <label class="chip"><input type="checkbox" id="t-plane" checked /><span>Fly</span><b id="c-plane">0</b></label>
+          <label class="chip"><input type="checkbox" id="t-roads" checked /><span>Vegmeldingar</span><b id="c-roads">0</b></label>
+          <label class="chip"><input type="checkbox" id="t-cams" checked /><span>Vegkamera</span></label>
+          <label class="chip"><input type="checkbox" id="t-stops" checked /><span>Haldeplassar</span></label>
+        </fieldset>
+        <ul id="vehicle-list" class="list vehicle-list" aria-label="Køyretøy i trafikk"></ul>
+        <p class="fine">Oppdaterast kvart 10. sekund. Køyretøy som ikkje har meldt seg på 10 minutt er skjulte.</p>
+      </section>
+
+      <section class="block" aria-labelledby="h-trip">
+        <h2 id="h-trip">Reiseplanleggar</h2>
+        <form id="trip-form" class="trip-form" autocomplete="off">
+          <div class="field" id="trip-from-wrap">
+            <label for="trip-from">Frå</label>
+            <div class="input-row">
+              <input id="trip-from" type="text" placeholder="Stopp eller adresse" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="trip-from-list" />
+              <button type="button" id="trip-here" class="icon-btn" title="Bruk posisjonen min" aria-label="Bruk posisjonen min">◎</button>
+            </div>
+            <ul id="trip-from-list" class="list suggest" role="listbox" hidden></ul>
+          </div>
+          <button type="button" id="trip-swap" class="swap" aria-label="Byt om frå og til">⇅</button>
+          <div class="field" id="trip-to-wrap">
+            <label for="trip-to">Til</label>
+            <input id="trip-to" type="text" placeholder="Stopp eller adresse" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="trip-to-list" />
+            <ul id="trip-to-list" class="list suggest" role="listbox" hidden></ul>
+          </div>
+          <div class="trip-opts">
+            <label class="sr-only" for="trip-when">Tidspunkt</label>
+            <input id="trip-when" type="datetime-local" aria-describedby="trip-when-help" />
+            <label class="check"><input type="checkbox" id="trip-arrive" /> Framme innan</label>
+          </div>
+          <p id="trip-when-help" class="fine">La tidspunktet stå tomt for å reise no.</p>
+          <button type="submit" id="trip-go" class="btn">Finn reise</button>
+          <p id="trip-msg" class="fine warn" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="block" aria-labelledby="h-flight">
+        <div class="block-head">
+          <h2 id="h-flight">Fly · Sogndal lufthamn Haukåsen</h2>
+          <div id="flight-tabs" class="tabs" role="group" aria-label="Avgangar eller ankomstar">
+            <button type="button" data-dir="departure" aria-pressed="true">Avgangar</button>
+            <button type="button" data-dir="arrival" aria-pressed="false">Ankomstar</button>
+          </div>
+        </div>
+        <ul id="flight-list" class="list flight-list" aria-live="polite"><li class="empty">Hentar flytavla …</li></ul>
+        <p class="fine">Fly merkte <b class="live-tag">i lufta</b> kan du klikke på for å følgje dei på kartet.</p>
+      </section>
+
+      <section class="block" aria-labelledby="h-roads">
+        <div class="block-head">
+          <h2 id="h-roads">Fjelloverganger</h2>
+          <span id="roads-updated" class="status"></span>
+        </div>
+        <ul id="pass-list" class="list" aria-live="polite"><li class="empty">Hentar vegstatus …</li></ul>
+        <details class="sub">
+          <summary>Vegmeldingar i Sogn</summary>
+          <ul id="msg-list" class="list"></ul>
+        </details>
+        <details class="sub">
+          <summary>Vegkamera</summary>
+          <ul id="cam-list" class="list"></ul>
+        </details>
+        <p class="fine">Frå Statens vegvesen. Ingen melding betyr ikkje at vegen er garantert open – sjekk <a href="https://www.vegvesen.no/trafikk/" target="_blank" rel="noopener">vegvesen.no/trafikk</a> eller ring 175.</p>
+      </section>
+
+      <section class="block" aria-labelledby="h-stops">
+        <h2 id="h-stops">Avgangar</h2>
+        <div class="search">
+          <label for="stop-search" class="sr-only">Søk etter haldeplass</label>
+          <input id="stop-search" type="search" placeholder="Søk etter haldeplass …" autocomplete="off" />
+        </div>
+        <ul id="stop-results" class="list" hidden aria-live="polite"></ul>
+        <ul id="stop-list" class="list stop-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="h-places">
+        <h2 id="h-places">Utforsk</h2>
+        <ul id="place-list" class="list place-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="h-view">
+        <h2 id="h-view">Visning</h2>
+        <div class="view-row">
+          <div id="theme-tabs" class="tabs" role="group" aria-label="Fargetema for kartet">
+            <button type="button" data-theme="auto" aria-pressed="true">Auto</button>
+            <button type="button" data-theme="light" aria-pressed="false">Lys</button>
+            <button type="button" data-theme="dark" aria-pressed="false">Mørk</button>
+          </div>
+          <label class="chip"><input type="checkbox" id="t-terrain" checked /><span>3D-terreng</span></label>
+        </div>
+        <p class="fine">«Auto» gir mørkt kart frå solnedgang til soloppgang. Slå av 3D-terreng om kartet går tregt på mobilen.</p>
+      </section>
+
+      <footer class="panel-foot">
+        <p>
+          Sanntid og ruter: <a href="https://developer.entur.no/" target="_blank" rel="noopener">Entur</a> ·
+          Kart: <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a>,
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> ·
+          Terreng: <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a> ·
+          Vêr: <a href="https://www.met.no/" target="_blank" rel="noopener">MET Norge</a> (CC BY 4.0) ·
+          Flytavle: <a href="https://allemannsdata.com/wiki/kilder/avinor/get_flights/" target="_blank" rel="noopener">Avinor via Allemannsdata</a> ·
+          Fly i lufta: <a href="https://adsb.lol" target="_blank" rel="noopener">adsb.lol</a> (ODbL) ·
+          Vegmeldingar og kamera: <a href="https://www.vegvesen.no/trafikk/" target="_blank" rel="noopener">Statens vegvesen</a>
+        </p>
+        <p><strong>Personvern:</strong> Sogndal.live set ingen informasjonskapslar og lagrar ingenting om deg. Innstillingane dine (tema, 3D) vert lagra berre i nettlesaren din. Kartet hentar kartfliser frå OpenFreeMap og Mapterhorn, og trafikkdata direkte frå kjeldene over.</p>
+      </footer>
+    </aside>
+
+    <div id="detail" class="detail" hidden role="dialog" aria-labelledby="detail-title" tabindex="-1">
+      <button id="detail-close" class="detail-close" type="button" aria-label="Lukk">×</button>
+      <div id="detail-body" aria-live="polite"></div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script src="/vendor/maplibre/maplibre-gl.js"></script>
+    <script src="/js/core.js"></script>
+    <script src="/js/stops.js"></script>
+    <script src="/js/roads.js"></script>
+    <script src="/js/vehicles.js"></script>
+    <script src="/js/planes.js"></script>
+    <script src="/js/trip.js"></script>
+    <script src="/js/extras.js"></script>
+  </body>
+</html>
